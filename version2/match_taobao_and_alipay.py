@@ -71,8 +71,8 @@ def analysis(taobao_orders, alipay_bills, cid, taobaoLevel, huabeiedu, huabeiAva
 				+'"'+str(item['quantity'])+'",' #quantity
 				+'"'+item['province']+'",' # tb_province
 				+'"'+item['city']+'",' # tb_city
-				+'"'+str(taobao_count)+'",' # alipay_count
-				+'"'+str(alipay_count)+'",' # tb_count
+				+'"'+str(alipay_count)+'",' # alipay_count
+				+'"'+str(taobao_count)+'",' # tb_count
 				+'"'+huabeiAvailable+'",' #huabei_available
 				+'"'+taobaoLevel+'",' # taobaoleve;
 				+'"'+huabeiedu+'",' # huabeiedu
@@ -94,8 +94,8 @@ def analysis(taobao_orders, alipay_bills, cid, taobaoLevel, huabeiedu, huabeiAva
 			+'"'+str(item['quantity'])+'",' #quantity
 			+'"'+item['province']+'",' # tb_province
 			+'"'+item['city']+'",' # tb_city
-			+'"'+str(taobao_count)+'",' # alipay_count
-			+'"'+str(0)+'",' # tb_count
+			+'"'+str(0)+'",' # alipay_count
+			+'"'+str(taobao_count)+'",' # tb_count
 			+'"'+huabeiAvailable+'",' #huabei_available
 			+'"'+taobaoLevel+'",' # taobaoleve;
 			+'"'+huabeiedu+'",' # huabeiedu
