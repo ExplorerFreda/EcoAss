@@ -4,9 +4,10 @@ import jieba.posseg as pseg
 
 
 
-output_filename = '../../data/taobao_result_new_matched.csv'
-input_filename = '../../data/taobao_result_new.dat'
+output_filename = '../../data/taobao_trial_result_matched.csv'
+input_filename = '../../data/taobao_trial_result.dat'
 describe_type_filename = '../../data/describe_type.txt'
+cluster_filename = '../../data/kmeans_result_sorted_cluster.txt'
 
 fout = codecs.open(output_filename,'w','utf8')
 fout.write('"id","time","money","status","alpay_desc","tb_desc","tb_type","tb_quantity","tb_province","tb_city","alipay_count","tb_count","huabei_available","taobaoLevel","huabei_quota","category"\n')
@@ -14,7 +15,11 @@ flog = codecs.open('log.txt', 'w', 'utf8')
 
 
 # load_types 
-cluster_to_category = json.loads(open('cates_whole.txt').readline())
+cluster_to_category = json.loads(codecs.open('cates_whole.txt','r','utf8').readline())
+cluster_to_category_temp = dict()
+for item in cluster_to_category:
+	cluster_to_category_temp[int(item)] = cluster_to_category[item]
+cluster_to_category = cluster_to_category_temp
 cluster = dict()
 for line in codecs.open(cluster_filename,'r','utf8'):
 	[word,clus] = line.split()
@@ -22,12 +27,15 @@ for line in codecs.open(cluster_filename,'r','utf8'):
 	word = word[:pos]
 	clus = int(clus)
 	cluster[word] = clus
-def get_taobao_desc_type(words):
+def get_taobao_desc_type(desc):
+	if type(desc) != type(u'inicode-string'):
+		return '-1'
+	words = [word.word for word in pseg.cut(desc)]
 	weight = [0 for i in range(13)]
 	for word in words:
-		word = word[:word.rfind('/')]
-		newline += word
-		if word in cluster and cluster_to_category[cluster[word]]!=-1:
+		if word in cluster:
+			if cluster_to_category[cluster[word]]== -1:
+				continue
 			weight[cluster_to_category[cluster[word]]] += 1
 	maxcnt = 0
 	argmax = -1
@@ -35,8 +43,7 @@ def get_taobao_desc_type(words):
 		if maxcnt < weight[i]:
 			maxcnt = weight[i]
 			argmax = i
-	print words, argmax
-	return argmax
+	return str(argmax)
 
 
 
@@ -54,13 +61,18 @@ print 'loaded describe type'
 
 def analysis(taobao_orders, alipay_bills, cid, taobaoLevel, huabeiedu, huabeiAvailable):
 	ret = False
-	for it in alipay_bills:
+	for it in alipay_bills: # normalize alipay bills
+		if type(it['trans_desc']) != type(u'string'):
+			it['trans_desc'] = str(it['trans_desc'])
 		pos = it['status'].find(' ')
 		if pos != -1:
 			it['status'] = it['status'][:pos]
 	black_namelist = set()
-	for item in taobao_orders:
-		taobao_desc = item['describe']
+	for item in taobao_orders: # normalize taobao trans firstly
+		if type(item['type']) != type(u'string'):
+			item['type'] = str(item['type'])
+		if type(item['describe']) != type(u'string'):
+			item['describe'] = str(item['describe'])
 		if type(item['province']) != type(u'string'):
 			item['province'] = str(item['province'])
 		if type(item['city']) != type(u'string'):
@@ -71,6 +83,9 @@ def analysis(taobao_orders, alipay_bills, cid, taobaoLevel, huabeiedu, huabeiAva
 			huabeiAvailable = str(huabeiAvailable)
 		if type(taobaoLevel) != type(u'string'):
 			taobaoLevel = str(taobaoLevel)
+		## normalization done
+		
+		taobao_desc = item['describe']
 		taobao_count = 0
 		taobao_trans_time = item['trans_time'][:-3]
 		if (taobao_desc, taobao_trans_time, item['price']) in black_namelist:
@@ -84,9 +99,9 @@ def analysis(taobao_orders, alipay_bills, cid, taobaoLevel, huabeiedu, huabeiAva
 		flog.write('taobao ' + taobao_trans_time + '\n')
 		for it in alipay_bills:
 			alipay_trans_time = it['trans_time'][:-3]
-			if taobao_trans_time == alipay_trans_time and -it['money'] == item['price']:
+			if taobao_trans_time == alipay_trans_time and -it['money'] == item['price'] and item['status']==it['status']:
 				if taobao_desc not in describe_type:
-					describe_type[taobao_desc] = get_taobao_desc_type(pseg.cut(taobao_desc))
+					describe_type[taobao_desc] = get_taobao_desc_type(taobao_desc)
 				alipay_desc = it['trans_desc']
 				alipay_count = 0
 				for i in range(len(alipay_bills)):
@@ -114,7 +129,7 @@ def analysis(taobao_orders, alipay_bills, cid, taobaoLevel, huabeiedu, huabeiAva
 				successful_matched = True
 		if not successful_matched:
 			if taobao_desc not in describe_type:
-				describe_type[taobao_desc] = get_taobao_desc_type(pseg.cut(taobao_desc))
+				describe_type[taobao_desc] = get_taobao_desc_type(taobao_desc)
 			fout.write('"'+str(cid)+'",' # cid
 			+'"'+taobao_trans_time+'",' # time
 			+'"'+str(item['price'])+'",' # money
