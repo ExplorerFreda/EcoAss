@@ -1,5 +1,5 @@
 import codecs
-
+import json
 
 describe_filename = '../../data/describe.txt'
 cluster_filename = '../../data/kmeans_result_sorted_cluster.txt'
@@ -38,6 +38,7 @@ for line in open('cates.txt'):
 	cate = int(cate)
 	cluster_to_category[clus] = cate
 print cluster_to_category
+flog.write(json.dumps(cluster_to_category)+'\n')
 
 fout = codecs.open(output_filename,'w','utf8')
 
