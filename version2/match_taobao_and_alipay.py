@@ -1,5 +1,8 @@
 import json
 import codecs
+import jieba.posseg as pseg
+
+
 
 output_filename = '../../data/taobao_result_new_matched.csv'
 input_filename = '../../data/taobao_result_new.dat'
@@ -8,6 +11,34 @@ describe_type_filename = '../../data/describe_type.txt'
 fout = codecs.open(output_filename,'w','utf8')
 fout.write('"id","time","money","status","alpay_desc","tb_desc","tb_type","tb_quantity","tb_province","tb_city","alipay_count","tb_count","huabei_available","taobaoLevel","huabei_quota","category"\n')
 flog = codecs.open('log.txt', 'w', 'utf8')
+
+
+# load_types 
+cluster_to_category = json.loads(open('cates_whole.txt').readline())
+cluster = dict()
+for line in codecs.open(cluster_filename,'r','utf8'):
+	[word,clus] = line.split()
+	pos = word.rfind('/')
+	word = word[:pos]
+	clus = int(clus)
+	cluster[word] = clus
+def get_taobao_desc_type(words):
+	weight = [0 for i in range(13)]
+	for word in words:
+		word = word[:word.rfind('/')]
+		newline += word
+		if word in cluster and cluster_to_category[cluster[word]]!=-1:
+			weight[cluster_to_category[cluster[word]]] += 1
+	maxcnt = 0
+	argmax = -1
+	for i in range(13):
+		if maxcnt < weight[i]:
+			maxcnt = weight[i]
+			argmax = i
+	print words, argmax
+	return argmax
+
+
 
 describe_type = dict()
 def load_describe_type(filename):
@@ -55,7 +86,7 @@ def analysis(taobao_orders, alipay_bills, cid, taobaoLevel, huabeiedu, huabeiAva
 			alipay_trans_time = it['trans_time'][:-3]
 			if taobao_trans_time == alipay_trans_time and -it['money'] == item['price']:
 				if taobao_desc not in describe_type:
-					continue
+					describe_type[taobao_desc] = get_taobao_desc_type(pseg.cut(taobao_desc))
 				alipay_desc = it['trans_desc']
 				alipay_count = 0
 				for i in range(len(alipay_bills)):
@@ -83,7 +114,7 @@ def analysis(taobao_orders, alipay_bills, cid, taobaoLevel, huabeiedu, huabeiAva
 				successful_matched = True
 		if not successful_matched:
 			if taobao_desc not in describe_type:
-				continue
+				describe_type[taobao_desc] = get_taobao_desc_type(pseg.cut(taobao_desc))
 			fout.write('"'+str(cid)+'",' # cid
 			+'"'+taobao_trans_time+'",' # time
 			+'"'+str(item['price'])+'",' # money
