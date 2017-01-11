@@ -10,7 +10,7 @@ describe_type_filename = '../../data/describe_type.txt'
 cluster_filename = '../../data/kmeans_result_sorted_cluster.txt'
 
 fout = codecs.open(output_filename,'w','utf8')
-fout.write('"id","time","money","status","alpay_desc","tb_desc","tb_type","tb_quantity","tb_province","tb_city","alipay_count","tb_count","huabei_available","taobaoLevel","huabei_quota","category"\n')
+fout.write('"id","time","money","status","alipay_desc","tb_desc","tb_type","tb_quantity","tb_province","tb_city","alipay_count","tb_count","huabei_available","taobaoLevel","huabei_quota","category"\n')
 flog = codecs.open('log.txt', 'w', 'utf8')
 
 

@@ -45,13 +45,11 @@ def get_taobao_desc_type(desc):
 
 fout = codecs.open(output_filename, 'w', 'utf8')
 for cnt, line in enumerate(codecs.open(input_filename, 'r', 'utf8')):
-	if cnt > 2000000:
-		break
 	items = line.split('&*(@#!$')
-	if len(items[4]) > 0 and items[4] != 'None':
-		desc = items[4]
-	else:
+	if len(items[5]) > 0 and items[5] != 'None':
 		desc = items[5]
+	else:
+		desc = items[4]
 	category = get_taobao_desc_type(desc)
 	items[-1] = category
 	output = '&*(@#!$'.join(items)
